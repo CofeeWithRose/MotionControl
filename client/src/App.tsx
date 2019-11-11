@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import './App.css';
-import ws from './ws'
-import Motion from './Motion'
+import { Route, BrowserRouter, Switch } from 'react-router-dom'
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <div className="App-header">
-        <Motion/>
-        <button onClick={() => ws.send({type: 'ping'})}>send ok</button>
-      </div>
-    </div>
+    <BrowserRouter>
+    <Suspense fallback={<section>...</section>}   >
+      <Switch>
+        <Route path="/result" exact  component={lazy(() => import('./Result'))} />
+        <Route path="/*" exact component={lazy(() => import('./Motion'))} ></Route>
+      </Switch>
+      </Suspense>
+    </BrowserRouter>
   );
 }
 
