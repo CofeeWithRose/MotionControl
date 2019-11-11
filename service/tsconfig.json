@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "outDir": "./dist/",
+      "module": "commonjs",
+      "target": "esnext",
+      "moduleResolution": "node",
+      "allowJs": true,
+      "lib": ["es7"],
+    },
+    "include": ["./src"],
+}  
