@@ -71,21 +71,11 @@ wsServer.addListener('connection', (client) => {
            
         }
         if (msg.type === 'sensor') {
-            // const motionInfo = (msg as WSMessage<'sensor'>).data
             const room = getRoom(client)
             if(room){
                const resultClients = room.get('result')
                 resultClients.forEach(client => client.send(data))
             }
-            // if (motionInfo.type === 'motionAcc') {
-            //     console.log(chalk.green(motionInfo.type, JSON.stringify(motionInfo.data)))
-            // }
-            // if (motionInfo.type === 'rotationAcc') {
-            //     console.log(chalk.blue(motionInfo.type, JSON.stringify(motionInfo.data)))
-            // }
-            // if (motionInfo.type === 'rotation') {
-            //     console.log(chalk.red(motionInfo.type, JSON.stringify(motionInfo.data)))
-            // }
         }
 
        
