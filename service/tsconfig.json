@@ -4,8 +4,10 @@
       "module": "commonjs",
       "target": "esnext",
       "moduleResolution": "node",
+      "esModuleInterop": true,
       "allowJs": true,
       "lib": ["es7"],
+      "watch": true
     },
     "include": ["./src"],
 }  

@@ -40,6 +40,8 @@ export default class Motion extends React.Component<{}, MotionState>{
     v = new Vector3()
     // DeviceOrientation
     componentDidMount() {
+       const sessionId = new URLSearchParams(window.location.search).get('sessionId')||''
+       ws.send(new WSMessage('login',sessionId))
         window.addEventListener('devicemotion', this.motionListener)
         window.addEventListener('deviceorientation', this.rotateListener)
     }
