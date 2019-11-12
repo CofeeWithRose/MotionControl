@@ -1,5 +1,18 @@
  import React from 'react'
- const a: React.FC = function(){
-   return( <span>...</span> )
+import ws, { WSMessage } from '../ws'
+export default class Result extends React.Component{
+  
+  componentDidMount(){
+    const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
+    ws.send(new WSMessage('login', {roomId, roleType: 'result'}))
+    ws.addEventListener('sensor', this.handleSensor)
+  }
+
+  handleSensor = (info: WSMessage<'sensor'>) => {
+    console.log(info)
+  }
+
+  render(){
+    return null
+  }
 }
-export default a

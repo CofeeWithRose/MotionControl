@@ -1,5 +1,7 @@
 import WebSocket,  { Server, ServerOptions } from 'ws'
 import chalk from 'chalk'
+import { remove, add, getRoom } from './room'
+type Roles = 'sensor'|'result';
 
 const serverOpt: ServerOptions = {
     port: 4000,
@@ -23,10 +25,14 @@ export class MotionInfo {
     ) { }
 }
 
+export class LoginInfo {
+    constructor(public roleType: Roles,public roomId?: string){}
+}
+
 export class WSMessageMap {
     constructor(
-        public msg: MotionInfo,
-        public login: string,
+        public sensor: MotionInfo,
+        public login: LoginInfo,
         public ping: null,
     ) { }
 
@@ -43,27 +49,34 @@ export class WSMessage<T extends keyof WSMessageMap> {
 const wsServer = new Server(serverOpt)
 wsServer.addListener('connection', (client) => {
     client.addEventListener('close', () => {
-        const roomId = client2IdMap.get(client)
-        roomId2ClientMap.delete(roomId)
-        client2IdMap.delete(client)
+       remove(client)
     })
 
     client.addListener('message', (data) => {
-        console.log('onmessage: ', JSON.stringify(data))
-        const msg: WSMessage<any> = JSON.parse(data as string) as WSMessage<any>
+        // console.log('onmessage: ', JSON.stringify(data))
+        const msg: WSMessage<keyof WSMessageMap> = JSON.parse(data as string) as WSMessage<any>
         if(msg.type === 'login'){
-            let sessionId = (msg as WSMessage<'login'>).data
-            if(!sessionId){
-                sessionId = `${++gsId}`
+            let {roomId, roleType} = (msg as WSMessage<'login'>).data || {}
+            if(roleType){
+                if(!roomId){
+                    roomId = `${++gsId}`
+                }
+                add(roomId, client, roleType)
+                const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType}))
+                client.send(dataStr)
+                console.log('send message: ', dataStr)
+            }else{
+                console.error(chalk.red('login need roleType'))
             }
-            client2IdMap.set(client, sessionId)
-            id2ClientMap.set(sessionId, client)
-            const dataStr = JSON.stringify(new WSMessage('login', sessionId))
-            client.send(dataStr)
-            console.log('send message: ', dataStr)
+           
         }
-        if (msg.type === 'msg') {
-            const motionInfo = (msg as WSMessage<'msg'>).data
+        if (msg.type === 'sensor') {
+            // const motionInfo = (msg as WSMessage<'sensor'>).data
+            const room = getRoom(client)
+            if(room){
+               const resultClients = room.get('result')
+                resultClients.forEach(client => client.send(data))
+            }
             // if (motionInfo.type === 'motionAcc') {
             //     console.log(chalk.green(motionInfo.type, JSON.stringify(motionInfo.data)))
             // }

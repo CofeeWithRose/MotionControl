@@ -22,16 +22,16 @@ function toFixed2(number: number) {
 export class MotionInfo {
     constructor(
         public ts: number,
-        public type: 'rotation'|'rotationAcc'|'motionAcc',
+        public type: 'rotation' | 'rotationAcc' | 'motionAcc',
         public data: Vector3
-    ){}
+    ) { }
 }
 
 export default class Motion extends React.Component<{}, MotionState>{
 
     state = new MotionState()
 
-    lastMotionData={
+    lastMotionData = {
         'rotation': new Array<Vector3>(),
         'rotationAcc': new Array<Vector3>(),
         'motionAcc': new Array<Vector3>(),
@@ -40,8 +40,8 @@ export default class Motion extends React.Component<{}, MotionState>{
     v = new Vector3()
     // DeviceOrientation
     componentDidMount() {
-       const sessionId = new URLSearchParams(window.location.search).get('sessionId')||''
-       ws.send(new WSMessage('login',sessionId))
+        const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
+        ws.send(new WSMessage('login', { roomId, roleType: 'sensor' }))
         window.addEventListener('devicemotion', this.motionListener)
         window.addEventListener('deviceorientation', this.rotateListener)
     }
@@ -61,7 +61,7 @@ export default class Motion extends React.Component<{}, MotionState>{
         this.setState({
             rotation
         })
-        const state = new MotionInfo(Date.now(),'rotation', rotation)
+        const state = new MotionInfo(Date.now(), 'rotation', rotation)
         this.handleMotion(state)
     }
 
@@ -83,15 +83,15 @@ export default class Motion extends React.Component<{}, MotionState>{
             rotationRate: aR
         })
         const ts = Date.now()
-        const accR = new MotionInfo(ts,'rotationAcc', aR)
+        const accR = new MotionInfo(ts, 'rotationAcc', aR)
         const accL = new MotionInfo(ts, 'motionAcc', aL)
         this.handleMotion(accR)
         this.handleMotion(accL)
         // ws.send(JSON.stringify(info))
     }
 
-    handleMotion = (motionInfo:MotionInfo) => {
-        
+    handleMotion = (motionInfo: MotionInfo) => {
+
         const array = this.lastMotionData[motionInfo.type]
         // const lastInfo = array.pop()
         // if(lastInfo){
@@ -100,12 +100,12 @@ export default class Motion extends React.Component<{}, MotionState>{
         //         y: motionInfo.data.y - lastInfo.y,
         //         z: motionInfo.data.z - lastInfo.z
         //     }
-           
+
         // }
-        ws.send(new WSMessage('msg', motionInfo))
+        ws.send(new WSMessage('sensor', motionInfo))
         array.push(motionInfo.data)
-        
-       
+
+
     }
 
     render() {
