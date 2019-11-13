@@ -20,6 +20,7 @@ ws.addEventListener('message', ({data}) => {
        console.error(e)
    }
    if(msg){
+       
     if(msg.type === 'login'){
         msg = msg as WSMessage<'login'>
         checkedRoomId = (msg.data && msg.data.roomId)||''

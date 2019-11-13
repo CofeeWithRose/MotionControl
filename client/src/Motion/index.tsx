@@ -7,9 +7,11 @@ class MotionState {
 
     rotation = new Vector3()
 
+    roomId = ''
+
 }
 
-class Vector3 {
+export class Vector3 {
     x = 0
     y = 0
     z = 0
@@ -40,6 +42,7 @@ export default class Motion extends React.Component<{}, MotionState>{
     v = new Vector3()
     // DeviceOrientation
     componentDidMount() {
+        ws.addEventListener('login', this.loginListener)
         const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
         ws.send(new WSMessage('login', { roomId, roleType: 'sensor' }))
         window.addEventListener('devicemotion', this.motionListener)
@@ -50,6 +53,12 @@ export default class Motion extends React.Component<{}, MotionState>{
     componentWillUnmount() {
         window.removeEventListener('devicemotion', this.motionListener)
         window.removeEventListener('deviceorientation', this.rotateListener)
+    }
+
+    loginListener = (msg: WSMessage<'login'>) => {
+        console.log('loginListener..')
+        ws.removeEventListener('login',this.loginListener)
+        this.setState({roomId: (msg.data && msg.data.roomId)||''})
     }
 
     rotateListener = (e: DeviceOrientationEvent) => {
@@ -109,8 +118,10 @@ export default class Motion extends React.Component<{}, MotionState>{
     }
 
     render() {
+        const { roomId } = this.state
         const { x: ax, y: ay, z: az } = this.state.rotation
         return <Fragment>
+            { roomId&&`${window.location.origin}/result?roomId=${roomId}` }
             <p>ax: {ax.toFixed(2)}</p>
 
             <p>ay: {ay.toFixed(2)}</p>
