@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import ws, { WSMessage } from '../ws'
 
 class MotionState {
@@ -8,6 +8,8 @@ class MotionState {
     rotation = new Vector3()
 
     roomId = ''
+
+    hasPermission = false
 
 }
 
@@ -75,6 +77,7 @@ export default class Motion extends React.Component<{}, MotionState>{
     }
 
     motionListener = (e: DeviceMotionEvent) => {
+        
         const { alpha: x, beta: y, gamma: z } = e.rotationRate || {}
         const { x: ax, y: ay, z: az } = e.acceleration || {}
         const aR = {
@@ -89,7 +92,8 @@ export default class Motion extends React.Component<{}, MotionState>{
         }
 
         this.setState({
-            rotationRate: aR
+            rotationRate: aR,
+            hasPermission: true,
         })
         const ts = Date.now()
         const accR = new MotionInfo(ts, 'rotationAcc', aR)
@@ -105,19 +109,35 @@ export default class Motion extends React.Component<{}, MotionState>{
         ws.send(new WSMessage('sensor', motionInfo))
         array.push(motionInfo.data)
 
+    }
+
+    requestPermission = () => {
+        if(window.DeviceMotionEvent){
+            if((DeviceMotionEvent as any ).requestPermission){
+                (DeviceMotionEvent as any ).requestPermission()
+            }
+        }else{
+            alert('不支持传感器')
+        }
+        
+    }
+
+    checkoutPermission = () => {
 
     }
 
     render() {
-        const { roomId } = this.state
+        const { roomId, hasPermission } = this.state
         const { x: ax, y: ay, z: az } = this.state.rotation
-        return <Fragment>
+        return <section style={{display: 'flex', flexDirection: 'column', padding: 40 }}>
+
+            {!hasPermission&&<button onClick={this.requestPermission}> 请求权限</button>}
             { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
             <p>ax: {ax.toFixed(2)}</p>
 
             <p>ay: {ay.toFixed(2)}</p>
 
             <p>az: {az.toFixed(2)}</p>
-        </Fragment>
+        </section>
     }
 }
