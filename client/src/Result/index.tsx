@@ -86,13 +86,13 @@ export default class Result extends React.Component{
   render(){
     const { rotateList, rotateAcc, motionAcc } = this.state
     return <Fragment>
-    <section style={{display: 'flex'}}>
+    <section style={{display: 'flex', border: 'darkblue solid 1px'}}>
       {this.renderMotionList(rotateList)}
     </section>
-    <section style={{display: 'flex'}}>
+    <section style={{display: 'flex', border: 'gray solid 1px'}}>
       {this.renderMotionList(rotateAcc)}
     </section>
-    <section style={{display: 'flex'}}>
+    <section style={{display: 'flex', border: 'black solid 1px'}}>
       {this.renderMotionList(motionAcc)}
     </section>
     </Fragment>

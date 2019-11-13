@@ -102,15 +102,6 @@ export default class Motion extends React.Component<{}, MotionState>{
     handleMotion = (motionInfo: MotionInfo) => {
 
         const array = this.lastMotionData[motionInfo.type]
-        // const lastInfo = array.pop()
-        // if(lastInfo){
-        //     const info = {
-        //         x: motionInfo.data.x - lastInfo.x,
-        //         y: motionInfo.data.y - lastInfo.y,
-        //         z: motionInfo.data.z - lastInfo.z
-        //     }
-
-        // }
         ws.send(new WSMessage('sensor', motionInfo))
         array.push(motionInfo.data)
 
@@ -121,7 +112,7 @@ export default class Motion extends React.Component<{}, MotionState>{
         const { roomId } = this.state
         const { x: ax, y: ay, z: az } = this.state.rotation
         return <Fragment>
-            { roomId&&`${window.location.origin}/result?roomId=${roomId}` }
+            { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
             <p>ax: {ax.toFixed(2)}</p>
 
             <p>ay: {ay.toFixed(2)}</p>
