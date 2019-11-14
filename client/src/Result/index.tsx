@@ -1,4 +1,4 @@
- import React, { Fragment } from 'react'
+ import React from 'react'
 import ws, { WSMessage } from '../ws'
 import {  MotionInfo } from '../Motion'
 
@@ -6,9 +6,9 @@ export class ResultState {
 
   rotateList: MotionInfo[] = []
 
-  rotateAcc:MotionInfo[] = []
+  rotateAccList:MotionInfo[] = []
 
-  motionAcc: MotionInfo[] = []
+  motionAccList: MotionInfo[] = []
 
 }
 
@@ -17,16 +17,41 @@ export class ResultState {
 export default class Result extends React.Component{
 
 
-  state = new ResultState()
+  // state = new ResultState()
 
   realState = new ResultState()
 
-  MAX = 500
+  MAX = 1000
+
+  HEIGHT = 100
+
+  rotateCanvas: HTMLCanvasElement|null = null
+
+  rotateCxt:CanvasRenderingContext2D|null = null
+
+  rotateAccCanvas: HTMLCanvasElement|null = null
+
+  rotateAccCxt:CanvasRenderingContext2D|null = null
+
+  motionAccCanvas: HTMLCanvasElement|null = null
+
+  motionAccCxt:CanvasRenderingContext2D|null = null
+
+
   
   componentDidMount(){
+    this.initContext()
     const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
     ws.send(new WSMessage('login', {roomId, roleType: 'result'}))
     ws.addEventListener('sensor', this.handleSensor)
+  }
+
+  initContext = () => {
+    if(this.rotateCanvas&&this.motionAccCanvas&&this.rotateAccCanvas){
+      this.rotateCxt = this.rotateCanvas.getContext('2d')
+      this.rotateAccCxt = this.rotateAccCanvas.getContext('2d')
+      this.motionAccCxt = this.motionAccCanvas.getContext('2d')
+    }
   }
 
   handleSensor = (info: WSMessage<'sensor'>) => {
@@ -38,23 +63,23 @@ export default class Result extends React.Component{
         if(rotateList.length> this.MAX){
           rotateList.shift()
         }
-        this.ttSetState({rotateList})
+        this.renderData({rotateList})
       }
       if(data.type === 'rotationAcc'){
-        const { rotateAcc } = this.realState
+        const { rotateAccList: rotateAcc } = this.realState
         rotateAcc.push(data)
         if(rotateAcc.length> this.MAX){
           rotateAcc.shift()
         }
-        this.ttSetState({rotateAcc})
+        this.renderData({rotateAcc})
       }
       if(data.type === 'motionAcc'){
-        const { motionAcc } = this.realState
+        const { motionAccList: motionAcc } = this.realState
         motionAcc.push(data)
         if(motionAcc.length> this.MAX){
           motionAcc.shift()
         }
-        this.ttSetState({motionAcc})
+        this.renderData({motionAcc})
       }
     }
   }
@@ -70,32 +95,47 @@ export default class Result extends React.Component{
     }
   }
 
-  ttSetState = this.tt((state: ResultState) => this.setState(state), 60)
+  renderData = this.tt(() => {
+    const {rotateList, rotateAccList, motionAccList} = this.realState
+    if(this.rotateCxt&& this.rotateAccCxt && this.motionAccCxt){
+      console.time('13')
+      this.renderCanvas(this.rotateCxt, rotateList, 720)
+      this.renderCanvas(this.rotateAccCxt, rotateAccList, 1440)
+      this.renderCanvas(this.motionAccCxt, motionAccList, 120)
+      console.timeEnd('13')
+    }
 
-  renderMotionList = (motionInfoList:MotionInfo[]) => {
-    const width = 1;
-    return motionInfoList.map( (item,index) => {
-      return <div key={`${item.ts}-${index}`} style={{display:'flex'}}>
-        <div style={{height: item.data.x,width, backgroundColor:'blue'}}></div>
-        <div style={{height: item.data.y, width, backgroundColor:'red'}}></div>
-        <div style={{height: item.data.z, width, backgroundColor:'green'}}></div>
-      </div>
+  },16)
+
+  renderCanvas = (ctx: CanvasRenderingContext2D, dataList:MotionInfo[], maxValue: number ) =>{
+    ctx.clearRect(0,0,this.MAX, this.HEIGHT)
+    dataList.forEach( ({data:{x,y,z}}, index) => {
+      // ctx.scale(-1, -1);
+      ctx.fillStyle="rgba(255,0,0,0.5)"
+      let h = x* this.HEIGHT/maxValue
+      ctx.fillRect(index+1, 0.5*this.HEIGHT -h , 1, h)
+
+      ctx.fillStyle="rgba(0,255,0,0.5)"
+      h = y* this.HEIGHT/maxValue
+      ctx.fillRect(index+2,0.5*this.HEIGHT - h, 1,  h)
+
+      ctx.fillStyle="rgba(0,0,255,0.5)"
+      h = z* this.HEIGHT/maxValue
+      ctx.fillRect(index+3,0.5*this.HEIGHT - h, 1, h)
+     
     })
   }
 
+
   render(){
-    const { rotateList, rotateAcc, motionAcc } = this.state
-    return <Fragment>
-    <section style={{display: 'flex', border: 'darkblue solid 1px'}}>
-      {this.renderMotionList(rotateList)}
-    </section>
-    <section style={{display: 'flex', border: 'gray solid 1px'}}>
-      {this.renderMotionList(rotateAcc)}
-    </section>
-    <section style={{display: 'flex', border: 'black solid 1px'}}>
-      {this.renderMotionList(motionAcc)}
-    </section>
-    </Fragment>
+    return (<section style={{width: '100%'}}>
+
+        <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.rotateCanvas = can}></canvas>
+        <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.rotateAccCanvas = can}></canvas>
+        <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.motionAccCanvas = can}></canvas>
+      </section>
+    )
+   
    
   }
 }

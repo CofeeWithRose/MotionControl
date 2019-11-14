@@ -41,13 +41,13 @@ export default class Motion extends React.Component<{}, MotionState>{
         const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
         ws.send(new WSMessage('login', { roomId, roleType: 'sensor' }))
         window.addEventListener('devicemotion', this.motionListener)
-        window.addEventListener('deviceorientation', this.rotateListener)
+        window.addEventListener('deviceorientationabsolute', this.rotateListener)
     }
 
 
     componentWillUnmount() {
         window.removeEventListener('devicemotion', this.motionListener)
-        window.removeEventListener('deviceorientation', this.rotateListener)
+        window.removeEventListener('deviceorientationabsolute', this.rotateListener)
     }
 
     loginListener = (msg: WSMessage<'login'>) => {
