@@ -72,7 +72,11 @@ module.exports = function(proxy, allowedHost) {
       ignored: ignoredFiles(paths.appSrc),
     },
     // Enable HTTPS if the HTTPS environment variable is set to 'true'
-    https: protocol === 'https',
+    https: {
+      key: fs.readFileSync(paths.sslKeyPath),
+      cert: fs.readFileSync(paths.sslCrtPath),
+      // ca: fs.readFileSync('/path/to/ca.pem'),
+    },
     host,
     overlay: false,
     historyApiFallback: {

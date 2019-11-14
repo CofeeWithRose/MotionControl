@@ -35,13 +35,6 @@ export default class Motion extends React.Component<{}, MotionState>{
 
     state = new MotionState()
 
-    lastMotionData = {
-        'rotation': new Array<Vector3>(),
-        'rotationAcc': new Array<Vector3>(),
-        'motionAcc': new Array<Vector3>(),
-    }
-
-    v = new Vector3()
     // DeviceOrientation
     componentDidMount() {
         ws.addEventListener('login', this.loginListener)
@@ -58,7 +51,6 @@ export default class Motion extends React.Component<{}, MotionState>{
     }
 
     loginListener = (msg: WSMessage<'login'>) => {
-        console.log('loginListener..')
         ws.removeEventListener('login',this.loginListener)
         this.setState({roomId: (msg.data && msg.data.roomId)||''})
     }
@@ -93,7 +85,7 @@ export default class Motion extends React.Component<{}, MotionState>{
 
         this.setState({
             rotationRate: aR,
-            hasPermission: true,
+           
         })
         const ts = Date.now()
         const accR = new MotionInfo(ts, 'rotationAcc', aR)
@@ -104,26 +96,26 @@ export default class Motion extends React.Component<{}, MotionState>{
     }
 
     handleMotion = (motionInfo: MotionInfo) => {
-
-        const array = this.lastMotionData[motionInfo.type]
         ws.send(new WSMessage('sensor', motionInfo))
-        array.push(motionInfo.data)
-
+        this.setState({hasPermission: true})
     }
 
-    requestPermission = () => {
+    requestPermission = async  () => {
         if(window.DeviceMotionEvent){
             if((DeviceMotionEvent as any ).requestPermission){
-                (DeviceMotionEvent as any ).requestPermission()
+               const granted = await (DeviceMotionEvent as any ).requestPermission()
+               if(granted === 'granted'){
+                    window.addEventListener('devicemotion', this.motionListener)
+                    window.addEventListener('deviceorientation', this.rotateListener)
+               }else{
+                   alert('清允许传感器权限')
+               }
+            }else{
+                alert('不支持权限申请')
             }
         }else{
             alert('不支持传感器')
         }
-        
-    }
-
-    checkoutPermission = () => {
-
     }
 
     render() {

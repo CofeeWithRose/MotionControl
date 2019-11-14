@@ -5,6 +5,7 @@ import koaSslify from 'koa-sslify'
 import https from 'https'
 import http from 'http'
 import fs from 'fs'
+import { sslKeyPath, sslCrtPath } from '../config/paths'
 
 const app = new Koa()
 const pwd = process.env.PWD||''
@@ -12,11 +13,9 @@ const staticPath = path.resolve(pwd,'static')
 app.use(koaSslify())
 app.use(koaStatic(staticPath))
 
-const keyPath = path.resolve(pwd, 'ssl/ssl.key')
-const cerPath = path.resolve(pwd, 'ssl/ssl.crt')
 const options = {
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(cerPath)
+  key: fs.readFileSync(sslKeyPath),
+  cert: fs.readFileSync(sslCrtPath)
 };
 export function start(){
 

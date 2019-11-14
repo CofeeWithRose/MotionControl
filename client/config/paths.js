@@ -83,6 +83,8 @@ module.exports = {
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
+  sslKeyPath: resolveApp('../ssl/ssl.key'),
+  sslCrtPath: resolveApp('../ssl/ssl.crt')
 };
 
 

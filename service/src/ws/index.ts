@@ -1,16 +1,13 @@
-import WebSocket,  { Server, ServerOptions } from 'ws'
+import  { Server, ServerOptions } from 'ws'
 import chalk from 'chalk'
 import { remove, add, getRoom } from '../room'
 import  https from 'https'
 import  fs from 'fs'
-import path from 'path'
+import { sslKeyPath, sslCrtPath } from '../config/paths'
 
-const pwd = process.env.PWD||''
-const keyPath = path.resolve(pwd, 'ssl/ssl.key')
-const cerPath = path.resolve(pwd, 'ssl/ssl.crt')
 const options = {
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(cerPath)
+  key: fs.readFileSync(sslKeyPath),
+  cert: fs.readFileSync(sslCrtPath)
 };
 
 const  server=https.createServer(options, function (req, res) {
