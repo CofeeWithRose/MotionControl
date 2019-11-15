@@ -1,5 +1,5 @@
 import React from 'react'
-import ws, { WSMessage } from '../ws'
+import ws, { WSMessage } from '../ws-service/ws'
 
 class MotionState {
 
@@ -41,13 +41,13 @@ export default class Motion extends React.Component<{}, MotionState>{
         const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
         ws.send(new WSMessage('login', { roomId, roleType: 'sensor' }))
         window.addEventListener('devicemotion', this.motionListener)
-        window.addEventListener('deviceorientationabsolute', this.rotateListener)
+        window.addEventListener('deviceorientation', this.rotateListener)
     }
 
 
     componentWillUnmount() {
         window.removeEventListener('devicemotion', this.motionListener)
-        window.removeEventListener('deviceorientationabsolute', this.rotateListener)
+        window.removeEventListener('deviceorientation', this.rotateListener)
     }
 
     loginListener = (msg: WSMessage<'login'>) => {

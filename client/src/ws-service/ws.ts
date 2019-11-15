@@ -1,4 +1,5 @@
-import { MotionInfo } from "./Motion";
+import { MotionInfo } from "../Motion";
+import { tt } from "./util";
 
 
 
@@ -7,15 +8,23 @@ const ws = new WebSocket(`wss://${window.location.host}/ws`)
 
 
 let isOppening = true;
-let cache: string[] = []
+let cache: WSMessage<keyof WSMessageMap>[] = []
 
-const eventMap =new Map< keyof WSMessageMap, ((msg: WSMessage<any>) => void)[] >()
+const eventMap =new Map< keyof WSMessageMap, ((msg: WSMessage<keyof WSMessageMap>) => void)[] >()
+
+const _sendCache = tt(()=>{
+    if(!isOppening && cache.length){
+        ws.send(JSON.stringify(cache))
+        cache=[]
+    }
+},15)
 
 
 ws.addEventListener('open', () => {
-    isOppening = false;
-    cache.forEach( msg => ws.send(msg) )
+    
+    ws.send(JSON.stringify(cache))
     cache = []
+    isOppening = false;
 })
 ws.addEventListener('message', ({data}) => {
     let msg: WSMessage<any>|null = null
@@ -72,28 +81,24 @@ export class WSMessage<T extends keyof WSMessageMap> {
 }
 
 function send<T extends keyof WSMessageMap>(message: WSMessage<T>){
-    const msg = JSON.stringify(message)
-    if(isOppening){
-        cache.push(msg)
-    }else{
-        ws.send(msg)
-    }
+    cache.push(message)
+    _sendCache()
 }
 
 
 
-function addEventListener<T extends keyof WSMessageMap>( eventName: T, fun: (msg: WSMessage<T>) => void){
+function addEventListener<T extends keyof WSMessageMap >( eventName: T, fun: (msg: WSMessage<T>) => void){
     let listeners = eventMap.get(eventName)
     if(!listeners){
         listeners = []
         eventMap.set(eventName, listeners)
     }
-    listeners.push(fun)
+    listeners.push(fun as any)
 }
 function removeEventListener<T extends keyof WSMessageMap>( eventName: T, fun: (msg: WSMessage<T>) => void){
     let listeners = eventMap.get(eventName)
     if(listeners){
-       const index = listeners.indexOf(fun)
+       const index = listeners.indexOf(fun as any)
        if(index > -1){
         listeners.splice(index, 1)
        }
@@ -101,7 +106,6 @@ function removeEventListener<T extends keyof WSMessageMap>( eventName: T, fun: (
 }
 
 export default {
-    ...ws,
     send,
     addEventListener,
     removeEventListener

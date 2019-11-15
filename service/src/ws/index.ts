@@ -72,29 +72,33 @@ export function start(){
     
         client.addListener('message', (data) => {
             // console.log('onmessage: ', JSON.stringify(data))
-            const msg: WSMessage<keyof WSMessageMap> = JSON.parse(data as string) as WSMessage<any>
-            if(msg.type === 'login'){
-                let {roomId, roleType} = (msg as WSMessage<'login'>).data || {}
-                if(roleType){
-                    if(!roomId){
-                        roomId = `${++gsId}`
+            const msgList: WSMessage<keyof WSMessageMap>[] = JSON.parse(data as string) as WSMessage<keyof WSMessageMap>[]
+            msgList.forEach( msg => {
+
+                if(msg.type === 'login'){
+                    let {roomId, roleType} = (msg as WSMessage<'login'>).data || {}
+                    if(roleType){
+                        if(!roomId){
+                            roomId = `${++gsId}`
+                        }
+                        add(roomId, client, roleType)
+                        const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType}))
+                        client.send(dataStr)
+                        console.log('send message: ', dataStr)
+                    }else{
+                        console.error(chalk.red('login need roleType'))
                     }
-                    add(roomId, client, roleType)
-                    const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType}))
-                    client.send(dataStr)
-                    console.log('send message: ', dataStr)
-                }else{
-                    console.error(chalk.red('login need roleType'))
+                
                 }
-               
-            }
-            if (msg.type === 'sensor') {
-                const room = getRoom(client)
-                if(room){
-                   const resultClients = room.get('result')
-                    resultClients.forEach(client => client.send(data))
+                if (msg.type === 'sensor') {
+                    const room = getRoom(client)
+                    if(room){
+                    const resultClients = room.get('result')
+                        resultClients.forEach(client => client.send(JSON.stringify(msg)))
+                    }
                 }
-            }
+            })
+
         })
     })
 }

@@ -1,6 +1,7 @@
  import React from 'react'
-import ws, { WSMessage } from '../ws'
+import ws, { WSMessage } from '../ws-service/ws'
 import {  MotionInfo } from '../Motion'
+import { tt } from '../ws-service/util'
 
 export class ResultState {
 
@@ -84,18 +85,9 @@ export default class Result extends React.Component{
     }
   }
 
-  tt = (fun: (...params:any[]) => void, limit: number) => {
-    let lasteTime = 0
-    return (...params: any[]) => {
-      const now = Date.now()
-      if(now - lasteTime > limit){
-        fun(...params)
-        lasteTime = now
-      }
-    }
-  }
 
-  renderData = this.tt(() => {
+
+  renderData = tt(() => {
     const {rotateList, rotateAccList, motionAccList} = this.realState
     if(this.rotateCxt&& this.rotateAccCxt && this.motionAccCxt){
       console.time('13')
