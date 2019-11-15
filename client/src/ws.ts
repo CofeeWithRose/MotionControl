@@ -2,7 +2,7 @@ import { MotionInfo } from "./Motion";
 
 
 
-const ws = new WebSocket(`wss://${window.location.hostname}:4000`)
+const ws = new WebSocket(`wss://${window.location.host}/ws`)
 
 
 

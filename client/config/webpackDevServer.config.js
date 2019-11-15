@@ -85,7 +85,15 @@ module.exports = function(proxy, allowedHost) {
       disableDotRule: true,
     },
     public: allowedHost,
-    proxy,
+    proxy: {
+      '/ws':{
+        target: 'ws://localhost:4000',
+        pathRewrite: {
+          'ws': ''
+        },
+        ws: true
+      }
+    },
     before(app, server) {
       if (fs.existsSync(paths.proxySetup)) {
         // This registers user provided middleware for proxy reasons

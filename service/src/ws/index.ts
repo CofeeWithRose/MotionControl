@@ -5,22 +5,23 @@ import  https from 'https'
 import  fs from 'fs'
 import { sslKeyPath, sslCrtPath } from '../config/paths'
 
-const options = {
-  key: fs.readFileSync(sslKeyPath),
-  cert: fs.readFileSync(sslCrtPath)
-};
+// const options = {
+//   key: fs.readFileSync(sslKeyPath),
+//   cert: fs.readFileSync(sslCrtPath)
+// };
 
-const  server=https.createServer(options, function (req, res) {
- res.writeHead(403);
- res.end("This is a WebSockets server!\n");
-}).listen(4000);
+// const  server=https.createServer(options, function (req, res) {
+//  res.writeHead(403);
+//  res.end("This is a WebSockets server!\n");
+// }).listen(4000);
 
 
 
 type Roles = 'sensor'|'result';
 
 const serverOpt: ServerOptions = {
-    server
+    // server,
+    port: 4000
 }
 
 class Vector3 {
