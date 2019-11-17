@@ -5,7 +5,9 @@ import { tt } from "./util";
 
 const ws = new WebSocket(`wss://${window.location.host}/ws`)
 
-
+ws.onerror = (e) => {
+    alert(`ws error: ${JSON.stringify(e)}`)
+}
 
 let isOppening = true;
 let cache: WSMessage<keyof WSMessageMap>[] = []

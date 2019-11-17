@@ -66,6 +66,7 @@ export class WSMessage<T extends keyof WSMessageMap> {
 export function start(){
     const wsServer = new Server(serverOpt)
     wsServer.addListener('connection', (client) => {
+
         client.addEventListener('close', () => {
            remove(client)
         })
@@ -101,6 +102,10 @@ export function start(){
 
         })
     })
+
+    wsServer.on('error', (socket, error) => {
+        console.log('socket error: ',error)
+    });
 }
 
 
