@@ -219,15 +219,6 @@ export default class Result extends React.Component{
     ctx.fill()
   }
 
-  getStartIndex = () => {
-
-  }
-
-  renderPre = () => {
-
-  }
-
-
   render(){
     return (<section style={{width: '100%'}}>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.rotateCanvas = can}></canvas>
