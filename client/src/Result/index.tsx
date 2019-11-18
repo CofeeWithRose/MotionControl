@@ -22,23 +22,21 @@ export class ResultInfo {
   /**
    * 取值默认用于渲染.
    */
-  get RotateListToRender(){
-    this.unRenederedRotateNum = 0
+  get RotateList(){
     return  this.rotateList
   }
 
-  get RotateAccListToRender(){
-    this.unRenederedRotateNum = 0
+  get RotateAccList(){
     return  this.rotateAccList
   }
 
-  get MotionAccListToRender(){
-    this.unRenederedMotionAccNum = 0
+  get MotionAccList(){
     return  this.motionAccList
   }
+  
 
   get RotateListStartIndex(){
-    return this.rotateAccList.length - this.unRenederedRotateNum
+    return this.rotateList.length - this.unRenederedRotateNum
   }
 
   get RotateAccListStartIndex(){
@@ -60,10 +58,10 @@ export class ResultInfo {
 
   pushRotateAcc(motionInfo: MotionInfo){
     this.rotateAccList.push(motionInfo)
-    this.unRenederedRotateAccNum++
     if(this.rotateAccList.length > this.MAX){
       this.rotateAccList.shift()
     }
+    this.unRenederedRotateAccNum++
   }
 
   pushMotionAcc(motionInfo: MotionInfo){
@@ -73,6 +71,20 @@ export class ResultInfo {
       this.motionAccList.shift()
     }
   }
+
+  resetRotate(){
+    this.unRenederedRotateNum = 0
+  }
+
+  resetRotateAcc(){
+    this.unRenederedRotateAccNum = 0
+  }
+
+  resetMotionAcc(){
+    this.unRenederedMotionAccNum = 0
+  }
+
+
 
 
 }
@@ -149,46 +161,59 @@ export default class Result extends React.Component{
 
 
   protected renderData = () => {
-    const { RotateListToRender, RotateAccListToRender, MotionAccListToRender } = this.resultInfo
-    if(this.rotateCxt&& this.rotateAccCxt && this.motionAccCxt){
+    const { RotateList: RotateListToRender, RotateAccList: RotateAccListToRender, MotionAccList: MotionAccListToRender } = this.resultInfo
+    if(this.rotateCxt&& this.rotateAccCxt && this.motionAccCxt && this.rotateCanvas && this.rotateAccCanvas && this.motionAccCanvas){
+     
       console.time('render')
-      this.renderCanvas(this.rotateCxt, RotateListToRender, 720)
-      this.renderCanvas(this.rotateAccCxt, RotateAccListToRender, 1440)
-      this.renderCanvas(this.motionAccCxt, MotionAccListToRender, 120)
+      this.renderCanvas(this.rotateCxt, RotateListToRender, 720, this.rotateCanvas,this.resultInfo.RotateListStartIndex)
+      this.resultInfo.resetRotate()
+      
+      this.renderCanvas(this.rotateAccCxt, RotateAccListToRender, 1440, this.rotateAccCanvas,this.resultInfo.RotateAccListStartIndex)
+      this.resultInfo.resetRotateAcc()
+
+      this.renderCanvas(this.motionAccCxt, MotionAccListToRender, 120, this.motionAccCanvas ,this.resultInfo.MotionAccListStartIndex)
+      this.resultInfo.resetMotionAcc()
       console.timeEnd('render')
+
     }
     requestAnimationFrame(this.renderData)
   }
 
-  protected renderCanvas = (ctx: CanvasRenderingContext2D, dataList:MotionInfo[], maxValue: number ) =>{
+  protected renderCanvas = (ctx: CanvasRenderingContext2D, dataList:MotionInfo[], maxValue: number, canvas: HTMLCanvasElement ,stratIndex: number ) =>{
+    if(this.tempContext){
+      this.tempContext.clearRect(0,0, this.MAX, this.HEIGHT)
+      const sourceX = dataList.length === this.MAX? this.MAX - stratIndex : 0;
+      this.tempContext.drawImage(canvas,  sourceX, 0, this.MAX, this.HEIGHT, 0, 0, this.MAX, this.HEIGHT)
+    }
     ctx.clearRect(0,0,this.MAX, this.HEIGHT)
+    ctx.drawImage(this.tempCanvas, 0, 0)
     const rate = this.HEIGHT/maxValue
     ctx.fillStyle="rgba(255,0,0,0.5)"
     ctx.beginPath()
-    for( let index = 0; index< dataList.length; index++){
+    for( let index = stratIndex; index< dataList.length; index++){
       const { data:{x} } = dataList[index]
       const h = x* rate
-      ctx.rect(index+1, 0.5*this.HEIGHT -h , 1, h)
+      ctx.rect(index, 0.5*this.HEIGHT -h , 1, h)
     }
     ctx.closePath()
     ctx.fill()
 
     ctx.fillStyle="rgba(0,255,0,0.5)"
     ctx.beginPath()
-    for( let index = 0; index< dataList.length; index++){
+    for( let index =stratIndex; index< dataList.length; index++){
       const { data:{y} } = dataList[index]
       const h = y* rate
-      ctx.rect(index+1, 0.5*this.HEIGHT -h , 1, h)
+      ctx.rect(index, 0.5*this.HEIGHT -h , 1, h)
     }
     ctx.closePath()
     ctx.fill()
 
     ctx.fillStyle="rgba(0,0,255,0.5)"
     ctx.beginPath()
-    for( let index = 0; index< dataList.length; index++){
+    for( let index = stratIndex; index< dataList.length; index++){
       const { data:{z} } = dataList[index]
       const h = z* rate
-      ctx.rect(index+1, 0.5*this.HEIGHT -h , 1, h)
+      ctx.rect(index, 0.5*this.HEIGHT -h , 1, h)
     }
     ctx.closePath()
     ctx.fill()
