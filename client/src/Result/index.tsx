@@ -2,13 +2,78 @@
 import ws, { WSMessage } from '../ws-service/ws'
 import {  MotionInfo } from '../Motion'
 
-export class ResultState {
+export class ResultInfo {
 
-  rotateList: MotionInfo[] = []
+  constructor(public MAX: number){}
 
-  rotateAccList:MotionInfo[] = []
+  protected rotateList: MotionInfo[] = []
 
-  motionAccList: MotionInfo[] = []
+  protected unRenederedRotateNum = 0
+
+
+  protected rotateAccList:MotionInfo[] = []
+
+  protected unRenederedRotateAccNum = 0
+
+  protected motionAccList: MotionInfo[] = []
+
+  protected unRenederedMotionAccNum = 0
+
+  /**
+   * 取值默认用于渲染.
+   */
+  get RotateListToRender(){
+    this.unRenederedRotateNum = 0
+    return  this.rotateList
+  }
+
+  get RotateAccListToRender(){
+    this.unRenederedRotateNum = 0
+    return  this.rotateAccList
+  }
+
+  get MotionAccListToRender(){
+    this.unRenederedMotionAccNum = 0
+    return  this.motionAccList
+  }
+
+  get RotateListStartIndex(){
+    return this.rotateAccList.length - this.unRenederedRotateNum
+  }
+
+  get RotateAccListStartIndex(){
+    return this.rotateAccList.length - this.unRenederedRotateAccNum
+  }
+
+  get MotionAccListStartIndex(){
+    return this.motionAccList.length - this.unRenederedMotionAccNum
+  }
+ 
+
+  pushRotate(motionInfo: MotionInfo){
+    this.rotateList.push(motionInfo)
+    this.unRenederedRotateNum++
+    if(this.rotateList.length > this.MAX){
+      this.rotateList.shift()
+    }
+  }
+
+  pushRotateAcc(motionInfo: MotionInfo){
+    this.rotateAccList.push(motionInfo)
+    this.unRenederedRotateAccNum++
+    if(this.rotateAccList.length > this.MAX){
+      this.rotateAccList.shift()
+    }
+  }
+
+  pushMotionAcc(motionInfo: MotionInfo){
+    this.motionAccList.push(motionInfo)
+    this.unRenederedMotionAccNum++
+    if(this.motionAccList.length > this.MAX){
+      this.motionAccList.shift()
+    }
+  }
+
 
 }
 
@@ -19,28 +84,29 @@ export default class Result extends React.Component{
 
   // state = new ResultState()
 
-  realState = new ResultState()
 
-  MAX = 1000
+  protected MAX = 1000
 
-  HEIGHT = 100
+  protected HEIGHT = 100
 
-  rotateCanvas: HTMLCanvasElement|null = null
+  protected rotateCanvas: HTMLCanvasElement|null = null
 
-  rotateCxt:CanvasRenderingContext2D|null = null
+  protected rotateCxt:CanvasRenderingContext2D|null = null
 
-  rotateAccCanvas: HTMLCanvasElement|null = null
+  protected rotateAccCanvas: HTMLCanvasElement|null = null
 
-  rotateAccCxt:CanvasRenderingContext2D|null = null
+  protected rotateAccCxt:CanvasRenderingContext2D|null = null
 
-  motionAccCanvas: HTMLCanvasElement|null = null
+  protected motionAccCanvas: HTMLCanvasElement|null = null
 
-  motionAccCxt:CanvasRenderingContext2D|null = null
+  protected motionAccCxt:CanvasRenderingContext2D|null = null
 
+  protected resultInfo = new ResultInfo(this.MAX)
 
-  // tempCanvas = window.document.createElement('canvas')
+  protected tempCanvas = window.document.createElement('canvas')
 
-  // tempContext = this.tempCanvas.getContext('2d')
+  protected tempContext = this.tempCanvas.getContext('2d')
+
 
   
   componentDidMount(){
@@ -56,59 +122,45 @@ export default class Result extends React.Component{
     this.renderData = () => {}
   }
 
-  initContext = () => {
+  protected initContext = () => {
     if(this.rotateCanvas&&this.motionAccCanvas&&this.rotateAccCanvas){
       this.rotateCxt = this.rotateCanvas.getContext('2d')
       this.rotateAccCxt = this.rotateAccCanvas.getContext('2d')
       this.motionAccCxt = this.motionAccCanvas.getContext('2d')
     }
-    // this.tempCanvas.width = this.MAX
-    // this.tempCanvas.height = this.HEIGHT
+    this.tempCanvas.width = this.MAX
+    this.tempCanvas.height = this.HEIGHT
   }
 
-  handleSensor = (info: WSMessage<'sensor'>) => {
+  protected handleSensor = (info: WSMessage<'sensor'>) => {
     const data = info.data
     if(data){
       if(data.type === 'rotation'){
-        const { rotateList } = this.realState
-        rotateList.push(data)
-        if(rotateList.length> this.MAX){
-          rotateList.shift()
-        }
+        this.resultInfo.pushRotate(data)
       }
       if(data.type === 'rotationAcc'){
-        const { rotateAccList: rotateAcc } = this.realState
-        rotateAcc.push(data)
-        if(rotateAcc.length> this.MAX){
-          rotateAcc.shift()
-        }
+        this.resultInfo.pushRotateAcc(data)
       }
       if(data.type === 'motionAcc'){
-        const { motionAccList: motionAcc } = this.realState
-        motionAcc.push(data)
-        if(motionAcc.length> this.MAX){
-          motionAcc.shift()
-        }
+        this.resultInfo.pushMotionAcc(data)
       }
     }
   }
 
 
-  renderData = () => {
-    const {rotateList, rotateAccList, motionAccList} = this.realState
+  protected renderData = () => {
+    const { RotateListToRender, RotateAccListToRender, MotionAccListToRender } = this.resultInfo
     if(this.rotateCxt&& this.rotateAccCxt && this.motionAccCxt){
       console.time('render')
-      this.renderCanvas(this.rotateCxt, rotateList, 720)
-      this.renderCanvas(this.rotateAccCxt, rotateAccList, 1440)
-      this.renderCanvas(this.motionAccCxt, motionAccList, 120)
+      this.renderCanvas(this.rotateCxt, RotateListToRender, 720)
+      this.renderCanvas(this.rotateAccCxt, RotateAccListToRender, 1440)
+      this.renderCanvas(this.motionAccCxt, MotionAccListToRender, 120)
       console.timeEnd('render')
     }
     requestAnimationFrame(this.renderData)
   }
 
-  // renderData = tt(this._renderData,16)
-
-  renderCanvas = (ctx: CanvasRenderingContext2D, dataList:MotionInfo[], maxValue: number ) =>{
+  protected renderCanvas = (ctx: CanvasRenderingContext2D, dataList:MotionInfo[], maxValue: number ) =>{
     ctx.clearRect(0,0,this.MAX, this.HEIGHT)
     const rate = this.HEIGHT/maxValue
     ctx.fillStyle="rgba(255,0,0,0.5)"
