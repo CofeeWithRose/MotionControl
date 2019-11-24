@@ -1,6 +1,7 @@
  import React from 'react'
 import ws, { WSMessage } from '../ws-service/ws'
 import {  MotionInfo } from '../Motion'
+import { ActionNames } from '../Motion/analyzer'
 
 export class ResultInfo {
 
@@ -84,18 +85,20 @@ export class ResultInfo {
     this.unRenederedMotionAccNum = 0
   }
 
+}
 
+export class ResultState{
 
+  boxCount = 0
+
+  defendCount = 0
 
 }
 
+export default class Result extends React.Component<{}, ResultState>{
 
 
-export default class Result extends React.Component{
-
-
-  // state = new ResultState()
-
+  state = new ResultState()
 
   protected MAX = 1000
 
@@ -126,11 +129,13 @@ export default class Result extends React.Component{
     const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
     ws.send(new WSMessage('login', {roomId, roleType: 'result'}))
     ws.addEventListener('sensor', this.handleSensor)
+    ws.addEventListener('action', this.handleAction)
     this.renderData()
   }
 
   componentWillUnmount(){
     ws.removeEventListener('sensor', this.handleSensor)
+    ws.removeEventListener('action', this.handleAction)
     this.renderData = () => {}
   }
 
@@ -144,18 +149,36 @@ export default class Result extends React.Component{
     this.tempCanvas.height = this.HEIGHT
   }
 
+  protected handleAction = (info:WSMessage<'action'>) => {
+    const { boxCount, defendCount } = this.state
+    if(info.data === ActionNames.HIT){
+      this.setState({
+         boxCount: 1 +boxCount
+       })
+    }
+    if(info.data === ActionNames.DEFEND){
+      this.setState({
+        defendCount: defendCount + 1
+      })
+    }
+  }
+
   protected handleSensor = (info: WSMessage<'sensor'>) => {
-    const data = info.data
-    if(data){
-      if(data.type === 'rotation'){
-        this.resultInfo.pushRotate(data)
+    const dataList = info.data
+    if(dataList&& dataList.length){
+      for(let i = 0; i< dataList.length; i++){
+        const data = dataList[i]
+        if(data.type === 'rotation'){
+          this.resultInfo.pushRotate(data)
+        }
+        if(data.type === 'rotationAcc'){
+          this.resultInfo.pushRotateAcc(data)
+        }
+        if(data.type === 'motionAcc'){
+          this.resultInfo.pushMotionAcc(data)
+        }
       }
-      if(data.type === 'rotationAcc'){
-        this.resultInfo.pushRotateAcc(data)
-      }
-      if(data.type === 'motionAcc'){
-        this.resultInfo.pushMotionAcc(data)
-      }
+     
     }
   }
 
@@ -220,10 +243,18 @@ export default class Result extends React.Component{
   }
 
   render(){
-    return (<section style={{width: '100%'}}>
+    const { defendCount, boxCount } = this.state
+    return (<section style={{width: '100%', padding: '20px'}}>
+       
+        <div>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.rotateCanvas = can}></canvas>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.rotateAccCanvas = can}></canvas>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.motionAccCanvas = can}></canvas>
+        </div>
+        <div>
+          hit=>{boxCount}
+          defend=>{defendCount}
+        </div>
       </section>
     )
    

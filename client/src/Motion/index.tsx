@@ -1,5 +1,6 @@
 import React from 'react'
 import ws, { WSMessage } from '../ws-service/ws'
+import Analyzer from './analyzer'
 
 class MotionState {
 
@@ -14,9 +15,13 @@ class MotionState {
 }
 
 export class Vector3 {
-    x = 0
-    y = 0
-    z = 0
+    
+    constructor(
+        readonly x = 0,
+        readonly y = 0,
+        readonly z = 0,
+    ){}
+   
 }
 
 function toFixed2(number: number) {
@@ -34,6 +39,29 @@ export class MotionInfo {
 export default class Motion extends React.Component<{}, MotionState>{
 
     state = new MotionState()
+
+    analyzer = new Analyzer()
+
+    /**
+     * 用于缓存批量发送的传感器信息，间隔 sendInterval ms.
+     */
+    motionCach:MotionInfo[] = []
+
+    /**
+     * 上次发送的时间 ms .
+     */
+    lastSendMiles = 0;
+
+    /**
+     * 发送的是按间隔 ms.
+     */
+    sendInterval = 30;
+
+    /**
+     * 最后一次发送的timer.
+     * 在最后一次发送时，若cache还有值，则延时interval毫秒发送的timer,若不是最后一次发送，则用于取消timeout.
+     */
+    timer: NodeJS.Timeout|null = null
 
     // DeviceOrientation
     componentDidMount() {
@@ -96,8 +124,32 @@ export default class Motion extends React.Component<{}, MotionState>{
     }
 
     handleMotion = (motionInfo: MotionInfo) => {
-        ws.send(new WSMessage('sensor', motionInfo))
+        this.motionCach.push(motionInfo)
+        this.analyzer.analyzeData(motionInfo)
+        this.sendCache()
         this.setState({hasPermission: true})
+    }
+
+    /**
+     * sendInterval ms间隔发送.
+     */
+    sendCache = () => {
+        if(this.motionCach.length){
+             // 取消上次的延迟发送.
+            if(this.timer){
+                window.clearTimeout()
+            }
+            const now = Date.now()
+            if(now - this.lastSendMiles >= this.sendInterval){
+                this.lastSendMiles= now;
+                ws.send(new WSMessage('sensor', this.motionCach))
+                this.motionCach=[]
+            }else{
+                // 若是最后一次发送，则 sendInterval ms后发送，若不是，下次发送是将取消.
+               this.timer = setTimeout(this.sendCache, this.sendInterval)
+            }
+           
+        }
     }
 
     requestPermission = async  () => {

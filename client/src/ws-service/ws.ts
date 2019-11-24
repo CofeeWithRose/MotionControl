@@ -1,6 +1,5 @@
 import { MotionInfo } from "../Motion";
-import { tt } from "./util";
-
+import { ActionNames } from "../Motion/analyzer";
 
 
 const ws = new WebSocket(`wss://${window.location.host}/ws`)
@@ -14,20 +13,15 @@ let cache: WSMessage<keyof WSMessageMap>[] = []
 
 const eventMap =new Map< keyof WSMessageMap, ((msg: WSMessage<keyof WSMessageMap>) => void)[] >()
 
-const _sendCache = tt(()=>{
-    if(!isOppening && cache.length){
-        ws.send(JSON.stringify(cache))
-        cache=[]
-    }
-},15)
-
 
 ws.addEventListener('open', () => {
-    
-    ws.send(JSON.stringify(cache))
-    cache = []
+    cache.forEach(item => {
+        ws.send(JSON.stringify(item))
+        cache = []
+    })
     isOppening = false;
 })
+
 ws.addEventListener('message', ({data}) => {
     let msg: WSMessage<any>|null = null
    try{
@@ -60,14 +54,17 @@ export class LoginInfo {
 
 export class WSMessageMap {
     constructor(
-       public sensor: MotionInfo,
+       public sensor: MotionInfo[],
        public login: LoginInfo,
        public ping: null,
+       public action: ActionNames,
+       public log: string,
     ){}
     
 }
 
 export class WSMessage<T extends keyof WSMessageMap> {
+    public readonly timestamp = Date.now()
     constructor(
         public type: T,
         public data?: WSMessageMap[T],
@@ -78,13 +75,15 @@ export class WSMessage<T extends keyof WSMessageMap> {
         }else{
             this.roomId = checkedRoomId
         }
-        
     }
 }
 
 function send<T extends keyof WSMessageMap>(message: WSMessage<T>){
-    cache.push(message)
-    _sendCache()
+    if(!isOppening){
+        ws.send(JSON.stringify(message))
+    }else{
+        cache.push(message)
+    }
 }
 
 

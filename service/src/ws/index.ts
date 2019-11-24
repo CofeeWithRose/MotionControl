@@ -48,14 +48,17 @@ export class LoginInfo {
 
 export class WSMessageMap {
     constructor(
-        public sensor: MotionInfo,
+        public sensor: MotionInfo[],
         public login: LoginInfo,
         public ping: null,
+        public action: string,
+        public log: string,
     ) { }
 
 }
 
 export class WSMessage<T extends keyof WSMessageMap> {
+    public timestamp = 0;
     constructor(
         public type: T,
         public data?: WSMessageMap[T],
@@ -73,8 +76,7 @@ export function start(){
     
         client.addListener('message', (data) => {
             // console.log('onmessage: ', JSON.stringify(data))
-            const msgList: WSMessage<keyof WSMessageMap>[] = JSON.parse(data as string) as WSMessage<keyof WSMessageMap>[]
-            msgList.forEach( msg => {
+            const msg: WSMessage<keyof WSMessageMap> = JSON.parse(data as string) as WSMessage<keyof WSMessageMap>
 
                 if(msg.type === 'login'){
                     let {roomId, roleType} = (msg as WSMessage<'login'>).data || {}
@@ -85,20 +87,23 @@ export function start(){
                         add(roomId, client, roleType)
                         const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType}))
                         client.send(dataStr)
-                        console.log('send message: ', dataStr)
                     }else{
-                        console.error(chalk.red('login need roleType'))
                     }
                 
                 }
-                if (msg.type === 'sensor') {
+                if (msg.type === 'sensor' || msg.type === 'action') {
                     const room = getRoom(client)
                     if(room){
                     const resultClients = room.get('result')
-                        resultClients.forEach(client => client.send(JSON.stringify(msg)))
+                        resultClients.forEach(client => client.send(data))
                     }
                 }
-            })
+
+                if(msg.type === 'log'){
+                    const msgC = msg as WSMessage<'log'>
+                    console.log(chalk.grey(msgC.data||'', `ts: ${msg.timestamp}`))
+                }
+
 
         })
     })
