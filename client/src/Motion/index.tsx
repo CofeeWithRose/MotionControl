@@ -198,10 +198,10 @@ export default class Motion extends React.Component<{}, MotionState>{
 
     render() {
         const { roomId, hasPermission, isLogined } = this.state
-        const { x: ax, y: ay, z: az } = this.state.rotation
-        return <section style={{display: 'flex', flexDirection: 'column', padding: 40 }}>
+        // const { x: ax, y: ay, z: az } = this.state.rotation
+        return <section style={{display: 'flex', flexDirection: 'column', padding: 40, alignItems:'center' }}>
 
-            {!hasPermission&&<button onClick={this.requestPermission}> 请求权限</button>}
+            {!hasPermission&&<p><button onClick={this.requestPermission}> 请求权限</button></p>}
             { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
             {
                 0 === isLogined&& <div>

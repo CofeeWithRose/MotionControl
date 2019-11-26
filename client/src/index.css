@@ -18,3 +18,12 @@ input{
   background: gray;
   border: lightgray;
 }
+
+button{
+  background: gray;
+  border: lightgray;
+}
+
+p{
+  text-align: center;
+}
