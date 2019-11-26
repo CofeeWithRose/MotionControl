@@ -22,7 +22,7 @@ class RoomClientMap {
 
 }
 
- type Roles = keyof RoomClientMap;
+export type Roles = keyof RoomClientMap;
 
 
 class Room {
@@ -66,7 +66,7 @@ const roomId2RoomMap = new Map<string, Room|null >()
 const client2RoomIdMap = new WeakMap<WebSocket, string|null>()
 
 
-export function add(roomId: string, client: WebSocket, roleType: Roles ){
+export function add(roomId: string, client: WebSocket, roleType: Roles ): string{
     let room = roomId2RoomMap.get(roomId)
     if(!room){
         room = new Room()
@@ -74,6 +74,7 @@ export function add(roomId: string, client: WebSocket, roleType: Roles ){
     }
     room.add(client, roleType)
     client2RoomIdMap.set(client, roomId)
+    return ''
 }
 
 export function get(roomId: string, roleType: Roles): WebSocket[]{

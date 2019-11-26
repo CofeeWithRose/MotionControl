@@ -1,6 +1,6 @@
 import  { Server, ServerOptions } from 'ws'
 import chalk from 'chalk'
-import { remove, add, getRoom } from '../room'
+import { remove, add, getRoom, Roles } from '../room'
 import  https from 'https'
 import  fs from 'fs'
 import { sslKeyPath, sslCrtPath } from '../config/paths'
@@ -17,7 +17,7 @@ import { sslKeyPath, sslCrtPath } from '../config/paths'
 
 
 
-type Roles = 'sensor'|'result'|'game';
+// type Roles = 'sensor'|'result'|'game';
 
 const serverOpt: ServerOptions = {
     // server,
@@ -43,7 +43,7 @@ export class MotionInfo {
 }
 
 export class LoginInfo {
-    constructor(public roleType: Roles,public roomId?: string){}
+    constructor(public roleType: Roles,public roomId?: string, public playerId?: string){}
 }
 
 export class WSMessageMap {
@@ -84,8 +84,8 @@ export function start(){
                         if(!roomId){
                             roomId = `${++gsId}`
                         }
-                        add(roomId, client, roleType)
-                        const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType}))
+                        const playerId = add(roomId, client, roleType)
+                        const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType, playerId}))
                         client.send(dataStr)
                     }else{
                     }
@@ -94,8 +94,17 @@ export function start(){
                 if (msg.type === 'sensor' || msg.type === 'action') {
                     const room = getRoom(client)
                     if(room){
-                    const resultClients = room.get('result')
+                        /**
+                         * 转发给图表端.
+                         */
+                        const resultClients = room.get('result')
                         resultClients.forEach(client => client.send(data))
+
+                        // 转发指令给游戏端.
+                        if(msg.type === 'action'){
+                            const games = room.get('game')
+                            games.forEach( client => client.send(data))
+                        }
                     }
                 }
 
