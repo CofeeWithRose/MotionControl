@@ -6,14 +6,19 @@ type LoginForm =  Pick<LoginInfo, 'playerId'|'roomId'>
 
 class MotionState {
 
-    rotationRate = new Vector3()
-
-    rotation = new Vector3()
-
+    /**
+     * 用于显示连接.
+     */
     roomId = ''
 
+    /**
+     * 加速度传感器数据标识,有数据时设置为true.
+     */
     hasPermission = false
 
+    /**
+     * 登录表单数据.
+     */
     form:LoginForm = {
         playerId: '',
         roomId: '',
@@ -25,6 +30,11 @@ class MotionState {
      * 2 已登陆
      */
     isLogined: 0|1|2 = 0
+
+    /**
+     * 是否上报所有传感器数据.
+     */
+    shouldSendDetail = false
 
 }
 
@@ -77,10 +87,8 @@ export default class Motion extends React.Component<{}, MotionState>{
      */
     timer: NodeJS.Timeout|null = null
 
-    // DeviceOrientation
     componentDidMount() {
         ws.addEventListener('login', this.onLogined)
-        // const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
         window.addEventListener('devicemotion', this.motionListener)
         window.addEventListener('deviceorientation', this.rotateListener)
     }
@@ -102,9 +110,6 @@ export default class Motion extends React.Component<{}, MotionState>{
             y: e.beta || 0,
             z: e.gamma || 0,
         }
-        this.setState({
-            rotation
-        })
         const state = new MotionInfo(Date.now(), 'rotation', rotation)
         this.handleMotion(state)
     }
@@ -123,23 +128,23 @@ export default class Motion extends React.Component<{}, MotionState>{
             y: toFixed2(ay || 0),
             z: toFixed2(az || 0),
         }
-
-        this.setState({
-            rotationRate: aR,
-           
-        })
         const ts = Date.now()
         const accR = new MotionInfo(ts, 'rotationAcc', aR)
         const accL = new MotionInfo(ts, 'motionAcc', aL)
         this.handleMotion(accR)
         this.handleMotion(accL)
-        // ws.send(JSON.stringify(info))
     }
 
+    /**
+     * 上传传感器数据与动作解析结果.
+     */
     handleMotion = (motionInfo: MotionInfo) => {
-        this.motionCach.push(motionInfo)
+        const { shouldSendDetail } = this.state
         this.analyzer.analyzeData(motionInfo)
-        this.sendCache()
+        if(shouldSendDetail){
+            this.motionCach.push(motionInfo)
+            this.sendCache()
+        }
         this.setState({hasPermission: true})
     }
 
@@ -165,6 +170,9 @@ export default class Motion extends React.Component<{}, MotionState>{
         }
     }
 
+    /**
+     * 获取传感器权限.
+     */
     requestPermission = async  () => {
         if(window.DeviceMotionEvent){
             if((DeviceMotionEvent as any ).requestPermission){
@@ -183,17 +191,31 @@ export default class Motion extends React.Component<{}, MotionState>{
         }
     }
 
+    /**
+     * 保存表单信息.
+     */
     setForm = (k:keyof LoginForm,v: string) => {
         const { form } = this.state
         const f = { ...form, [k]: v}
         this.setState({form: f})
     }
 
+    /**
+     * 发送登录消息.
+     */
     login = () => {
         const { form } = this.state;
         const { roomId, playerId } = form
         ws.send(new WSMessage('login', { roomId, roleType: 'sensor', playerId: playerId }))
         this.setState({isLogined: 1})
+    }
+
+    /**
+     * 不发送传感器所有信息，减小网络延迟.
+     */
+    sendDetailChange = () => {
+        const { shouldSendDetail } = this.state
+        this.setState({shouldSendDetail: !shouldSendDetail});
     }
 
     render() {
@@ -218,6 +240,8 @@ export default class Motion extends React.Component<{}, MotionState>{
                     <p>playerId: <input onChange={({target:{value}}) => this.setForm('playerId', value)}/> </p>
 
                     <p>roomId: <input onChange={({target:{value}}) => this.setForm('roomId', value)} /></p>
+
+                    <p>sendDetail: <input type="checkbox" onChange={() => this.sendDetailChange }/> </p>
 
                     <h4>
                         <p>

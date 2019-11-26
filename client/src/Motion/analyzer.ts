@@ -6,16 +6,17 @@ import { tt } from "../ws-service/util"
  * 速度分析结果枚举.
  */
 export class MotionResult {
-    X? = false
-    Y?=  false
-    Z? = false
+    X?: 0|1|-1 = 0
+    Y?: 0|1|-1 =  0
+    Z?: 0|1|-1 = 0
 } 
 
 /**
  * 动作的枚举.
  */
 export enum ActionNames {
- DEFEND = '0',
+ DEFEND_START = '0',
+ DEFEND_END = '-0',
  HIT = '1'
 }
 
@@ -74,9 +75,11 @@ export class AccAnalyzer {
 export default class Analyzer {
 
     // private info = new MotionsInfo(20)
-    private accXAnalyzer = new AccAnalyzer({max: 40, triggerDirect: 1})
+    private accXAnalyzer = new AccAnalyzer({max: 30, triggerDirect: 1})
 
-    private roAccYAnanlyzer = new AccAnalyzer({max: 400, triggerDirect: 1})
+    private roAccY1Ananlyzer = new AccAnalyzer({max: 400, triggerDirect: 1})
+
+    private roAccY_1Ananlyzer = new AccAnalyzer({max: 200, triggerDirect: -1})
 
     analyzeData(motionInfo: MotionInfo) {
        let moAcc: MotionResult ={}
@@ -99,19 +102,19 @@ export default class Analyzer {
      */
     setHand(direct: 1|-1){
         this.accXAnalyzer.setHand(direct)
-        this.roAccYAnanlyzer.setHand(direct)
+        this.roAccY1Ananlyzer.setHand(direct)
+        this.roAccY_1Ananlyzer.setHand(-1 * direct as 1|-1)
     }
 
     protected analyzeResult(moAcc: MotionResult, roAcc: MotionResult): ActionNames|null  {
        
-        if(roAcc.Y){
-            // ws.send(new WSMessage('log', JSON.stringify({moAcc, roAcc})))
-            // ws.send(new WSMessage('action', 'defend'))
-            return ActionNames.DEFEND
+        if(1 === roAcc.Y){
+            return ActionNames.DEFEND_START
+        }
+        if(-1 === roAcc.Y){
+            return ActionNames.DEFEND_END
         }
         if(moAcc.X){
-            // ws.send(new WSMessage('log', JSON.stringify({moAcc, roAcc})))
-            // ws.send(new WSMessage('action', 'hit'))
             return ActionNames.HIT
         }
         return null
@@ -125,12 +128,9 @@ export default class Analyzer {
     protected analyzeMotionAcc(motionInfo: MotionInfo): MotionResult {
         const res = new  MotionResult()
        const isTriggerX =  this.accXAnalyzer.isTrigger(motionInfo.data.x)
-        // if (motionInfo.data.x > this.mmx) {
-        //     this.mmx = motionInfo.data.x
-        //     ws.send(new WSMessage('log', `'mmxy: '${this.mmx}`))
-        // }
+       
         if(isTriggerX){
-            res.X = true
+            res.X = 1
         }
         return res
     }
@@ -138,10 +138,13 @@ export default class Analyzer {
     // private mmx = 0;
     protected analizeRotateAcc(motionInfo: MotionInfo): MotionResult {
         const res = new  MotionResult()
-        const isTriggerY =  this.roAccYAnanlyzer.isTrigger(motionInfo.data.y)
-       
+        const isTriggerY =  this.roAccY1Ananlyzer.isTrigger(motionInfo.data.y)
+        const isTrigger_Y =  this.roAccY_1Ananlyzer.isTrigger(motionInfo.data.y)
         if(isTriggerY){
-            res.Y = true
+            res.Y = 1
+        }
+        if(isTrigger_Y){
+            res.Y = -1
         }
         return res
     }

@@ -74,7 +74,7 @@ export default class Result extends React.Component<{}, ResultState>{
          boxCount: 1 +boxCount
        })
     }
-    if(info.data === ActionNames.DEFEND){
+    if(info.data === ActionNames.DEFEND_START){
       this.setState({
         defendCount: defendCount + 1
       })
