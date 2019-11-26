@@ -1,24 +1,39 @@
 import WebSocket = require("ws");
 
-class ClientMap {
+/**
+ * 管理不同类型的客户端.
+ */
+class RoomClientMap {
 
+    /**
+     * 传感器端.
+     */
    public sensor = new  Set<WebSocket>()
 
+   /**
+    * 可视化端.
+    */
    public result =  new  Set<WebSocket>()
 
+   /**
+    * 游戏端.
+    */
    public game = new  Set<WebSocket>()
 
 }
 
- type Roles = keyof ClientMap;
+ type Roles = keyof RoomClientMap;
 
 
 class Room {
 
-    private  clientMap = new ClientMap()
+    /**
+     * 各个类型的客户端.
+     */
+    private  clientMap = new RoomClientMap()
     
-
     private clientToRoleMap = new Map<WebSocket, Roles>()
+    
 
     isEmpty(){
         return !Object.values(this.clientMap).reduce( (re, item) => re + item.size  )
