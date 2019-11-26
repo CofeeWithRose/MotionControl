@@ -1,6 +1,8 @@
 import React from 'react'
-import ws, { WSMessage } from '../ws-service/ws'
+import ws, { WSMessage, LoginInfo } from '../ws-service/ws'
 import Analyzer from './analyzer'
+
+type LoginForm =  Pick<LoginInfo, 'playerId'|'roomId'>
 
 class MotionState {
 
@@ -11,6 +13,18 @@ class MotionState {
     roomId = ''
 
     hasPermission = false
+
+    form:LoginForm = {
+        playerId: '',
+        roomId: '',
+    }
+
+    /**
+     * 0 未登陆
+     * 1 正在登陆
+     * 2 已登陆
+     */
+    isLogined: 0|1|2 = 0
 
 }
 
@@ -65,9 +79,8 @@ export default class Motion extends React.Component<{}, MotionState>{
 
     // DeviceOrientation
     componentDidMount() {
-        ws.addEventListener('login', this.loginListener)
-        const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
-        ws.send(new WSMessage('login', { roomId, roleType: 'sensor' }))
+        ws.addEventListener('login', this.onLogined)
+        // const roomId = new URLSearchParams(window.location.search).get('roomId') || ''
         window.addEventListener('devicemotion', this.motionListener)
         window.addEventListener('deviceorientation', this.rotateListener)
     }
@@ -78,9 +91,9 @@ export default class Motion extends React.Component<{}, MotionState>{
         window.removeEventListener('deviceorientation', this.rotateListener)
     }
 
-    loginListener = (msg: WSMessage<'login'>) => {
-        ws.removeEventListener('login',this.loginListener)
-        this.setState({roomId: (msg.data && msg.data.roomId)||''})
+    onLogined = (msg: WSMessage<'login'>) => {
+        ws.removeEventListener('login',this.onLogined)
+        this.setState({roomId: (msg.data && msg.data.roomId)||'', isLogined: 2})
     }
 
     rotateListener = (e: DeviceOrientationEvent) => {
@@ -170,18 +183,42 @@ export default class Motion extends React.Component<{}, MotionState>{
         }
     }
 
+    setForm = (k:keyof LoginForm,v: string) => {
+        const { form } = this.state
+        const f = { ...form, [k]: v}
+        this.setState({form: f})
+    }
+
+    login = () => {
+        const { form } = this.state;
+        const { roomId, playerId } = form
+        ws.send(new WSMessage('login', { roomId, roleType: 'sensor', playerId: playerId }))
+        this.setState({isLogined: 1})
+    }
+
     render() {
-        const { roomId, hasPermission } = this.state
+        const { roomId, hasPermission, isLogined } = this.state
         const { x: ax, y: ay, z: az } = this.state.rotation
         return <section style={{display: 'flex', flexDirection: 'column', padding: 40 }}>
 
             {!hasPermission&&<button onClick={this.requestPermission}> 请求权限</button>}
             { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
-            <p>ax: {ax.toFixed(2)}</p>
+            {
+                0 === isLogined&& <div>
+                <p>playerId: <input onChange={({target:{value}}) => this.setForm('playerId', value)}/> </p>
 
-            <p>ay: {ay.toFixed(2)}</p>
+                <p>roomId: <input onChange={({target:{value}}) => this.setForm('roomId', value)} /></p>
 
-            <p>az: {az.toFixed(2)}</p>
+                <p><button onClick={this.login}>connect</button>></p>
+            </div>
+            }
+            {
+                1 === isLogined && 'connecting...'
+            }
+            {
+                2 === isLogined && 'logoined'
+            }
+           
         </section>
     }
 }
