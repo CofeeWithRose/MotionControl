@@ -3,51 +3,6 @@ import ws, { WSMessage } from "../ws-service/ws"
 import { tt } from "../ws-service/util"
 
 /**
- * 存储一段数据用于分析.
- */
-// export class MotionsInfo {
-
-//     constructor(
-//         /**
-//          * 每种数据的存储数量.
-//          */
-//         private maxSize: number
-//     ) { }
-
-
-//     /**
-//      * 旋转状态数据.
-//      */
-//     private rotation: MotionInfo[] = []
-
-
-//     /**
-//      * 旋转加速度传感器.
-//      */
-//     private rotationAcc: MotionInfo[] = []
-
-//     /**
-//      * 直线加速度传感器.
-//      */
-//     private motionAcc: MotionInfo[] = []
-
-//     /**
-//      * 
-//      * @param motionInfo 添加数据
-//      */
-//     push(motionInfo: MotionInfo) {
-//         const arr = this[motionInfo.type]
-//         arr.push(motionInfo)
-//         if(arr.length >this.maxSize){
-//             arr.shift()
-//         }
-//     }
-
-
-
-// }
-
-/**
  * 速度分析结果枚举.
  */
 export class MotionResult {

@@ -1,52 +1,48 @@
 import WebSocket = require("ws");
 
- type Roles = 'sensor'|'result';
+class ClientMap {
+
+   public sensor = new  Set<WebSocket>()
+
+   public result =  new  Set<WebSocket>()
+
+   public game = new  Set<WebSocket>()
+
+}
+
+ type Roles = keyof ClientMap;
+
 
 class Room {
-    private sensor = new  Set<WebSocket>()
 
-    private result =  new  Set<WebSocket>()
+    private  clientMap = new ClientMap()
+    
 
-    private clientToRolemap = new Map<WebSocket, Roles>()
+    private clientToRoleMap = new Map<WebSocket, Roles>()
 
     isEmpty(){
-        return !(this.sensor.size || this.result.size)
+        return !Object.values(this.clientMap).reduce( (re, item) => re + item.size  )
     }
 
    add(client: WebSocket, roleType:Roles ){
-       if(roleType === 'sensor'){
-           this.sensor.add(client)
-           this.clientToRolemap.set(client, 'sensor')
-       }
-       if(roleType === 'result'){
-           this.result.add(client)
-           this.clientToRolemap.set(client, 'result')
-       }
+       this.clientMap[roleType].add(client)
+       this.clientToRoleMap.set(client, roleType)
    }
 
    get(roleType: Roles): WebSocket[]{
-    if(roleType === 'sensor'){
-        return Array.from(this.sensor)
-    } 
-    if(roleType === 'result'){
-        return Array.from(this.result)
-    }
-    return []
+    return Array.from(this.clientMap[roleType])
    }
 
    getRoleType(client:WebSocket){
-       return this.clientToRolemap.get(client)
+       return this.clientToRoleMap.get(client)
    }
 
    remove(client: WebSocket){
-    const role = this.clientToRolemap.get(client)
-    if(role === 'sensor'){
-        this.sensor.delete(client)
+    const role = this.clientToRoleMap.get(client)
+    if(role){
+        this.clientMap[role]
+        this.clientToRoleMap.delete(client)
     }
-    if(role === 'result'){
-        this.result.delete(client)
-    }
-    this.clientToRolemap.delete(client)
    }
 
 }

@@ -17,7 +17,7 @@ import { sslKeyPath, sslCrtPath } from '../config/paths'
 
 
 
-type Roles = 'sensor'|'result';
+type Roles = 'sensor'|'result'|'game';
 
 const serverOpt: ServerOptions = {
     // server,

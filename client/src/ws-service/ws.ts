@@ -11,6 +11,11 @@ ws.onerror = (e) => {
 let isOppening = true;
 let cache: WSMessage<keyof WSMessageMap>[] = []
 
+/**
+ * 登陆后返回.
+ */
+let playerId = ''
+
 const eventMap =new Map< keyof WSMessageMap, ((msg: WSMessage<keyof WSMessageMap>) => void)[] >()
 
 
@@ -34,6 +39,7 @@ ws.addEventListener('message', ({data}) => {
     if(msg.type === 'login'){
         msg = msg as WSMessage<'login'>
         checkedRoomId = (msg.data && msg.data.roomId)||''
+        playerId = (msg.data&&msg.data.playerId)||''
     }
     const listeners = eventMap.get(msg.type)
     if(listeners){
@@ -49,7 +55,11 @@ let checkedRoomId = ''
 type Roles = 'sensor'|'result';
 
 export class LoginInfo {
-    constructor(public roleType: Roles,public roomId?: string){}
+    constructor(
+        public readonly roleType: Roles,
+        public readonly roomId?: string, 
+        public readonly playerId?: string
+    ){}
 }
 
 export class WSMessageMap {
@@ -65,6 +75,9 @@ export class WSMessageMap {
 
 export class WSMessage<T extends keyof WSMessageMap> {
     public readonly timestamp = Date.now()
+
+    protected  playerId = ''
+
     constructor(
         public type: T,
         public data?: WSMessageMap[T],
@@ -75,6 +88,7 @@ export class WSMessage<T extends keyof WSMessageMap> {
         }else{
             this.roomId = checkedRoomId
         }
+        this.playerId = playerId
     }
 }
 

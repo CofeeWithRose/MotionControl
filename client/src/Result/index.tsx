@@ -2,90 +2,8 @@
 import ws, { WSMessage } from '../ws-service/ws'
 import {  MotionInfo } from '../Motion'
 import { ActionNames } from '../Motion/analyzer'
+import ResultInfoManager from './ResultInfoManager'
 
-export class ResultInfo {
-
-  constructor(public MAX: number){}
-
-  protected rotateList: MotionInfo[] = []
-
-  protected unRenederedRotateNum = 0
-
-
-  protected rotateAccList:MotionInfo[] = []
-
-  protected unRenederedRotateAccNum = 0
-
-  protected motionAccList: MotionInfo[] = []
-
-  protected unRenederedMotionAccNum = 0
-
-  /**
-   * 取值默认用于渲染.
-   */
-  get RotateList(){
-    return  this.rotateList
-  }
-
-  get RotateAccList(){
-    return  this.rotateAccList
-  }
-
-  get MotionAccList(){
-    return  this.motionAccList
-  }
-  
-
-  get RotateListStartIndex(){
-    return this.rotateList.length - this.unRenederedRotateNum
-  }
-
-  get RotateAccListStartIndex(){
-    return this.rotateAccList.length - this.unRenederedRotateAccNum
-  }
-
-  get MotionAccListStartIndex(){
-    return this.motionAccList.length - this.unRenederedMotionAccNum
-  }
- 
-
-  pushRotate(motionInfo: MotionInfo){
-    this.rotateList.push(motionInfo)
-    this.unRenederedRotateNum++
-    if(this.rotateList.length > this.MAX){
-      this.rotateList.shift()
-    }
-  }
-
-  pushRotateAcc(motionInfo: MotionInfo){
-    this.rotateAccList.push(motionInfo)
-    if(this.rotateAccList.length > this.MAX){
-      this.rotateAccList.shift()
-    }
-    this.unRenederedRotateAccNum++
-  }
-
-  pushMotionAcc(motionInfo: MotionInfo){
-    this.motionAccList.push(motionInfo)
-    this.unRenederedMotionAccNum++
-    if(this.motionAccList.length > this.MAX){
-      this.motionAccList.shift()
-    }
-  }
-
-  resetRotate(){
-    this.unRenederedRotateNum = 0
-  }
-
-  resetRotateAcc(){
-    this.unRenederedRotateAccNum = 0
-  }
-
-  resetMotionAcc(){
-    this.unRenederedMotionAccNum = 0
-  }
-
-}
 
 export class ResultState{
 
@@ -116,7 +34,7 @@ export default class Result extends React.Component<{}, ResultState>{
 
   protected motionAccCxt:CanvasRenderingContext2D|null = null
 
-  protected resultInfo = new ResultInfo(this.MAX)
+  protected resultInfo = new ResultInfoManager(this.MAX)
 
   protected tempCanvas = window.document.createElement('canvas')
 
