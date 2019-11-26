@@ -200,8 +200,18 @@ export default class Motion extends React.Component<{}, MotionState>{
         const { roomId, hasPermission, isLogined } = this.state
         // const { x: ax, y: ay, z: az } = this.state.rotation
         return <section style={{display: 'flex', flexDirection: 'column', padding: 40, alignItems:'center' }}>
-
             {!hasPermission&&<p><button onClick={this.requestPermission}> 请求权限</button></p>}
+            
+            
+            {
+                0 === isLogined && <p><h3>Login</h3></p>
+            }
+            {
+                1 === isLogined && <p><h3>connecting...</h3></p>
+            }
+            {
+                2 === isLogined && <p><h3>logoined</h3></p>
+            }
             { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
             {
                 0 === isLogined&& <div>
@@ -209,15 +219,10 @@ export default class Motion extends React.Component<{}, MotionState>{
 
                     <p>roomId: <input onChange={({target:{value}}) => this.setForm('roomId', value)} /></p>
 
-                    <p><button onClick={this.login}>connect</button></p>
+                    <p><button onClick={this.login}><h4>connect</h4></button></p>
                 </div>
             }
-            {
-                1 === isLogined && 'connecting...'
-            }
-            {
-                2 === isLogined && 'logoined'
-            }
+            
            
         </section>
     }
