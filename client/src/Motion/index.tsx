@@ -204,13 +204,13 @@ export default class Motion extends React.Component<{}, MotionState>{
             
             
             {
-                0 === isLogined && <p><h3>Login</h3></p>
+                0 === isLogined && <h3>Login</h3>
             }
             {
-                1 === isLogined && <p><h3>connecting...</h3></p>
+                1 === isLogined && <h3>connecting...</h3>
             }
             {
-                2 === isLogined && <p><h3>logoined</h3></p>
+                2 === isLogined && <h3>logoined</h3>
             }
             { roomId&&`${window.location.origin}?roomId=${roomId}#/result` }
             {
@@ -219,7 +219,11 @@ export default class Motion extends React.Component<{}, MotionState>{
 
                     <p>roomId: <input onChange={({target:{value}}) => this.setForm('roomId', value)} /></p>
 
-                    <p><button onClick={this.login}><h4>connect</h4></button></p>
+                    <h4>
+                        <p>
+                            <button onClick={this.login}>connect</button>
+                        </p>
+                    </h4>
                 </div>
             }
             
