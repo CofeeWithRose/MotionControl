@@ -62,7 +62,8 @@ export class WSMessage<T extends keyof WSMessageMap> {
     constructor(
         public type: T,
         public data?: WSMessageMap[T],
-        public roomId?: string
+        public roomId?: string,
+        public playerId?: string,
     ) { }
 }
 
@@ -84,10 +85,13 @@ export function start(){
                         if(!roomId){
                             roomId = `${++gsId}`
                         }
-                        const playerId = add(roomId, client, roleType)
+                        add(roomId, client, roleType)
+                        let playerId = msg.playerId
+                        if(roleType === 'game'&& !playerId){
+                            playerId = `${++gsId}`
+                        }
                         const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType, playerId}))
                         client.send(dataStr)
-                    }else{
                     }
                 
                 }
