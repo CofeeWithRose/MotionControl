@@ -241,7 +241,7 @@ export default class Motion extends React.Component<{}, MotionState>{
 
                     <p>roomId: <input onChange={({target:{value}}) => this.setForm('roomId', value)} /></p>
 
-                    <p>sendDetail: <input type="checkbox" onChange={() => this.sendDetailChange }/> </p>
+                    <p>sendDetail: <input type="checkbox"  onChange={this.sendDetailChange }/> </p>
 
                     <h4>
                         <p>
