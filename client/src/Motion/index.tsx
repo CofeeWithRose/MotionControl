@@ -48,15 +48,16 @@ export class Vector3 {
    
 }
 
-function toFixed2(number: number) {
-    return 0.01 * Math.floor(number * 100)
-}
+// function toFixed2(number: number) {
+//     return 0.01 * Math.floor(number * 100)
+// }
 
+export type MotionTypes = 'rotation' | 'rotationAcc' | 'motionAcc'| 'gravity'
 export class MotionInfo {
     constructor(
         public ts: number,
-        public type: 'rotation' | 'rotationAcc' | 'motionAcc',
-        public data: Vector3
+        public type: MotionTypes,
+        public data: Vector3,
     ) { }
 }
 
@@ -118,21 +119,30 @@ export default class Motion extends React.Component<{}, MotionState>{
         
         const { alpha: x, beta: y, gamma: z } = e.rotationRate || {}
         const { x: ax, y: ay, z: az } = e.acceleration || {}
+        const { x: gx, y: gy, z: gz } = e.accelerationIncludingGravity||{}
+
         const aR = {
-            x: toFixed2(x || 0),
-            y: toFixed2(y || 0),
-            z: toFixed2(z || 0),
+            x: x || 0,
+            y: y || 0,
+            z: z || 0,
         }
         const aL = {
-            x: toFixed2(ax || 0),
-            y: toFixed2(ay || 0),
-            z: toFixed2(az || 0),
+            x: ax||0,
+            y: ay ||0,
+            z: az||0,
+        }
+        const g = {
+            x: (gx||0)-(ax||0),
+            y: (gy||0)-(ay||0),
+            z: (gz||0)-(az||0),
         }
         const ts = Date.now()
         const accR = new MotionInfo(ts, 'rotationAcc', aR)
         const accL = new MotionInfo(ts, 'motionAcc', aL)
+        const aG = new MotionInfo(ts, 'gravity', g )
         this.handleMotion(accR)
         this.handleMotion(accL)
+        this.handleMotion(aG)
     }
 
     /**
