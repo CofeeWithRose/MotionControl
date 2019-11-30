@@ -19,8 +19,8 @@ class MotionState {
     /**
      * 登录表单数据.
      */
-    form:LoginForm = {
-        playerId: '',
+    form: LoginForm = {
+        playerId: 0,
         roomId: '',
     }
 
@@ -207,6 +207,7 @@ export default class Motion extends React.Component<{}, MotionState>{
         const { form } = this.state;
         const { roomId, playerId } = form
         ws.send(new WSMessage('login', { roomId, roleType: 'sensor', playerId: playerId }))
+        ws.send(new WSMessage('log', `playerId: ${playerId}`))
         this.setState({isLogined: 1})
     }
 

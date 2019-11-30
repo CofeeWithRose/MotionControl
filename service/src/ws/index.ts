@@ -43,7 +43,7 @@ export class MotionInfo {
 }
 
 export class LoginInfo {
-    constructor(public roleType: Roles,public roomId?: string, public playerId?: string){}
+    constructor(public roleType: Roles,public roomId?: string, public playerId?: number){}
 }
 
 export class WSMessageMap {
@@ -63,7 +63,7 @@ export class WSMessage<T extends keyof WSMessageMap> {
         public type: T,
         public data?: WSMessageMap[T],
         public roomId?: string,
-        public playerId?: string,
+        public playerId?: number,
     ) { }
 }
 
@@ -80,15 +80,14 @@ export function start(){
             const msg: WSMessage<keyof WSMessageMap> = JSON.parse(data as string) as WSMessage<keyof WSMessageMap>
 
                 if(msg.type === 'login'){
-                    let {roomId, roleType} = (msg as WSMessage<'login'>).data || {}
+                    let {roomId, roleType, playerId} = (msg as WSMessage<'login'>).data || {}
                     if(roleType){
                         if(!roomId){
                             roomId = `${++gsId}`
                         }
                         add(roomId, client, roleType)
-                        let playerId = msg.playerId
                         if(roleType === 'game'&& !playerId){
-                            playerId = `${++gsId}`
+                            playerId = ++gsId
                         }
                         const dataStr = JSON.stringify(new WSMessage('login', { roomId, roleType, playerId}))
                         client.send(dataStr)

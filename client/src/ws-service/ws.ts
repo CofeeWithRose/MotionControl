@@ -14,7 +14,7 @@ let cache: WSMessage<keyof WSMessageMap>[] = []
 /**
  * 登陆后返回.
  */
-let playerId = ''
+let playerId = 0
 
 const eventMap =new Map< keyof WSMessageMap, ((msg: WSMessage<keyof WSMessageMap>) => void)[] >()
 
@@ -58,7 +58,7 @@ export class LoginInfo {
     constructor(
         public readonly roleType: Roles,
         public readonly roomId?: string, 
-        public readonly playerId?: string
+        public readonly playerId?: number
     ){}
 }
 
@@ -76,7 +76,7 @@ export class WSMessageMap {
 export class WSMessage<T extends keyof WSMessageMap> {
     public readonly timestamp = Date.now()
 
-    protected  playerId = ''
+    protected  playerId = 0
 
     constructor(
         public type: T,

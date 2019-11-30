@@ -69,7 +69,7 @@ export default class Result extends React.Component<{}, ResultState>{
 
   protected handleAction = (info:WSMessage<'action'>) => {
     const { boxCount, defendCount } = this.state
-    if(info.data === ActionNames.HIT){
+    if(info.data === ActionNames.ATTACK){
       this.setState({
          boxCount: 1 +boxCount
        })

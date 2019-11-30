@@ -15,9 +15,9 @@ export class MotionResult {
  * 动作的枚举.
  */
 export enum ActionNames {
- DEFEND_START = '0',
- DEFEND_END = '-0',
- HIT = '1'
+ DEFEND_START = 1,
+ DEFEND_END = 2,
+ ATTACK = 3
 }
 
 export class AccAnalyzerOptoins {
@@ -115,7 +115,7 @@ export default class Analyzer {
             return ActionNames.DEFEND_END
         }
         if(moAcc.X){
-            return ActionNames.HIT
+            return ActionNames.ATTACK
         }
         return null
     }
