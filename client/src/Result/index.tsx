@@ -1,7 +1,7 @@
  import React from 'react'
 import ws, { WSMessage } from '../ws-service/ws'
-import { ActionNames } from '../Motion/analyzer'
 import ResultRender from './ResultRender'
+import { ACTIONS } from '../Motion/actions'
 
 
 export class ResultState{
@@ -39,12 +39,12 @@ export default class Result extends React.Component<{}, ResultState>{
 
   protected handleAction = (info:WSMessage<'action'>) => {
     const { boxCount, defendCount } = this.state
-    if(info.data === ActionNames.ATTACK){
+    if(info.data === ACTIONS.ATTACK){
       this.setState({
          boxCount: 1 +boxCount
        })
     }
-    if(info.data === ActionNames.DEFEND_START){
+    if(info.data === ACTIONS.DEFEND_START){
       this.setState({
         defendCount: defendCount + 1
       })
@@ -81,7 +81,7 @@ export default class Result extends React.Component<{}, ResultState>{
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.resultRender.setRender('rotation', can, 720, this.HEIGHT) }></canvas>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.resultRender.setRender('rotationAcc', can, 1440, this.HEIGHT)}></canvas>
         <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.resultRender.setRender('motionAcc', can, 120, this.HEIGHT)}></canvas>
-        <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.resultRender.setRender('gravity', can, 10, this.HEIGHT)}></canvas>
+        <canvas width={this.MAX} height={this.HEIGHT} ref={can => this.resultRender.setRender('gravity', can, 20, this.HEIGHT)}></canvas>
         </div>
         <div>
           hit=>{boxCount}

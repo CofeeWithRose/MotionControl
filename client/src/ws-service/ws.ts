@@ -1,5 +1,5 @@
 import { MotionInfo } from "../Motion";
-import { ActionNames } from "../Motion/analyzer";
+import { ACTIONS } from "../Motion/actions";
 
 
 const ws = new WebSocket(`wss://${window.location.host}/ws`)
@@ -67,7 +67,7 @@ export class WSMessageMap {
        public sensor: MotionInfo[],
        public login: LoginInfo,
        public ping: null,
-       public action: ActionNames,
+       public action: ACTIONS,
        public log: string,
     ){}
     
